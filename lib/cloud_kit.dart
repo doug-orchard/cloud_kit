@@ -20,7 +20,7 @@ class CloudKit {
   /// The key need to be unique.
   /// Returns a boolean [bool] with true if the save was successfully.
   Future<bool> save(String key, String value) async {
-    if (!Platform.isIOS) {
+    if (!Platform.isIOS || !Platform.isMacOS) {
       return false;
     }
 
@@ -28,9 +28,7 @@ class CloudKit {
       return false;
     }
 
-    bool status = await _channel.invokeMethod('SAVE_VALUE',
-            {"key": key, "value": value, "containerId": _containerId}) ??
-        false;
+    bool status = await _channel.invokeMethod('SAVE_VALUE', {"key": key, "value": value, "containerId": _containerId}) ?? false;
 
     return status;
   }
@@ -39,7 +37,7 @@ class CloudKit {
   /// Returns a string [string] with the saved value.
   /// This can be null if the key was not found.
   Future<String?> get(String key) async {
-    if (!Platform.isIOS) {
+    if (!Platform.isIOS || !Platform.isMacOS) {
       return null;
     }
 
@@ -47,8 +45,7 @@ class CloudKit {
       return null;
     }
 
-    List<dynamic> records = await (_channel
-        .invokeMethod('GET_VALUE', {"key": key, "containerId": _containerId}));
+    List<dynamic> records = await (_channel.invokeMethod('GET_VALUE', {"key": key, "containerId": _containerId}));
 
     if (records.length != 0) {
       return records[0];
@@ -59,12 +56,11 @@ class CloudKit {
 
   /// Loads all values stored in CloudKit in a Map with key and value both as a string
   Future<Map<String, String>?> getAll() async {
-    if (!Platform.isIOS) {
+    if (!Platform.isIOS || !Platform.isMacOS) {
       return null;
     }
 
-    Map<dynamic, dynamic> records = await (_channel
-        .invokeMethod('GET_ALL_VALUE', {"containerId": _containerId}));
+    Map<dynamic, dynamic> records = await (_channel.invokeMethod('GET_ALL_VALUE', {"containerId": _containerId}));
 
     Map<String, String> stringRecords = records.map((key, value) {
       return MapEntry(key.toString(), value.toString());
@@ -75,7 +71,7 @@ class CloudKit {
 
   /// Delete a entry from CloudKit using the key.
   Future<bool> delete(String key) async {
-    if (!Platform.isIOS) {
+    if (!Platform.isIOS || !Platform.isMacOS) {
       return false;
     }
 
@@ -83,24 +79,18 @@ class CloudKit {
       return false;
     }
 
-    bool success = await _channel.invokeMethod('DELETE_VALUE', {
-          "key": key,
-          "containerId": _containerId,
-        }) ??
-        false;
+    bool success = await _channel.invokeMethod('DELETE_VALUE', {"key": key, "containerId": _containerId}) ?? false;
 
     return success;
   }
 
   /// Deletes the entire user database.
   Future<bool> clearDatabase() async {
-    if (!Platform.isIOS) {
+    if (!Platform.isIOS || !Platform.isMacOS) {
       return false;
     }
 
-    bool success = await _channel
-            .invokeMethod('DELETE_ALL', {"containerId": _containerId}) ??
-        false;
+    bool success = await _channel.invokeMethod('DELETE_ALL', {"containerId": _containerId}) ?? false;
 
     return success;
   }
@@ -109,12 +99,14 @@ class CloudKit {
   /// This is useful to check first if the user is logged in
   /// and then trying to save data to the users iCloud
   Future<CloudKitAccountStatus> getAccountStatus() async {
-    if (!Platform.isIOS) {
+    if (!Platform.isIOS || !Platform.isMacOS) {
+      print('yess it ${Platform.isMacOS}');
+    }
+    if (!Platform.isIOS || !Platform.isMacOS) {
       return CloudKitAccountStatus.notSupported;
     }
 
-    int accountStatus = await _channel
-        .invokeMethod('GET_ACCOUNT_STATUS', {"containerId": _containerId});
+    int accountStatus = await _channel.invokeMethod('GET_ACCOUNT_STATUS', {"containerId": _containerId});
 
     return CloudKitAccountStatus.values[accountStatus];
   }
